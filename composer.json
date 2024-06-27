@@ -27,7 +27,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Medeirosinacio\\SkeletonPhp\\": "src/"
+      "Medeirosinacio\\MongoTtlIndexChangeStream\\": "src/"
     }
   },
   "autoload-dev": {

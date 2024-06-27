@@ -1,9 +1,9 @@
 <?php
 
-use Medeirosinacio\SkeletonPhp\Example;
+use Medeirosinacio\SkeletonPhp\MongoStreamListener;
 
 it('foo', function () {
-    $example = new Example();
+    $example = new MongoStreamListener();
 
     $result = $example->foo();
 
