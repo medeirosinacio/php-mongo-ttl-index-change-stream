@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
 
   php:
@@ -12,7 +10,7 @@ services:
     image: mongo:6.0.13
     command: --replSet rs0
     volumes:
-      - ./migration/mongo:/migration
+      - ./migrations/mongo:/migrations
     ports:
       - '27017:27017'
     restart: on-failure

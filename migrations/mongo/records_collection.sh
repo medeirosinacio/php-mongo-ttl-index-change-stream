@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-mongosh --host mongo <<EOF
-  use default
-
+## Need to connect to the mongo primary node
+mongosh "mongodb://mongo/default?replicaSet=rs0&readPreference=primary" <<EOF
   db.createCollection("records")
   db.records.createIndex(
       { "expires_at": 1 },
