@@ -1,7 +1,5 @@
 <?php
 
-ini_set('memory_limit', '-1');
-
 use Medeirosinacio\MongoTtlIndexChangeStream\MongoStreamListenerCommand;
 use MongoDB\ChangeStream;
 use MongoDB\Client;
