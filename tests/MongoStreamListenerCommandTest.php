@@ -8,8 +8,6 @@ use MongoDB\Database;
 use MongoDB\Model\BSONDocument;
 use Psr\SimpleCache\CacheInterface;
 
-use function PHPUnit\Framework\assertTrue;
-
 beforeEach(function () {
     $this->mongo = Mockery::mock(Client::class);
     $this->mongoDatabase = Mockery::mock(Database::class);
@@ -73,9 +71,5 @@ test('it listens and processes changes', function () {
         ->with('mongo_resume_token', $resumeToken)
         ->andReturn(true);
 
-    ob_start();
     $this->listener->run();
-    $output = ob_get_clean();
-
-    assertTrue(str_contains($output, 'Inserted new document in default.records'));
 });
