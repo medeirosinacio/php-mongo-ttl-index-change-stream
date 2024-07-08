@@ -40,7 +40,7 @@ Run the listener command to start monitoring MongoDB collection changes:
 php bin/console dev:mongo-stream-listener
 ```
 
-![](./assets/README-1720454397217.png)
+![](docs/assets/README-1720454397217.png)
 
 ## License
 

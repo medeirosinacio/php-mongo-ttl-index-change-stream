@@ -1,12 +1,17 @@
 <?php
 
 use Medeirosinacio\MongoTtlIndexChangeStream\MongoStreamListenerCommand;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use MongoDB\ChangeStream;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Database;
 use MongoDB\Model\BSONDocument;
 use Psr\SimpleCache\CacheInterface;
+
+use function PHPUnit\Framework\assertStringContainsString;
+
+uses(MockeryPHPUnitIntegration::class);
 
 beforeEach(function () {
     $this->mongo = Mockery::mock(Client::class);
@@ -15,61 +20,39 @@ beforeEach(function () {
     $this->listener = new MongoStreamListenerCommand($this->mongo, $this->cache);
 });
 
-afterEach(function () {
-    Mockery::close();
-});
-
-test('it listens and processes changes', function () {
+test('it processes different types of events', function () {
     $collection = Mockery::mock(Collection::class);
     $changeStream = Mockery::mock(ChangeStream::class);
     $resumeToken = (object) ['_data' => 'resume_token_data'];
-    $event = new BSONDocument([
-        'ns' => ['db' => 'default', 'coll' => 'records'],
-        'documentKey' => ['_id' => 'some_id'],
+
+    $insertEvent = new BSONDocument([
         'operationType' => 'insert',
-        'fullDocument' => ['_id' => 'some_id', 'field' => 'value'],
+        'fullDocument' => ['_id' => '123', 'name' => 'Test'],
+        'ns' => ['db' => 'default', 'coll' => 'records'],
+        'documentKey' => ['_id' => '123'],
     ]);
 
-    $this->mongo->expects('selectDatabase')
-        ->with('default')
-        ->andReturn($this->mongoDatabase);
-
-    $this->mongoDatabase->expects('selectCollection')
-        ->with('records')
-        ->andReturn($collection);
-
-    $collection->expects('getDatabaseName')
-        ->andReturn('default');
-
-    $collection->expects('getCollectionName')
-        ->andReturn('records');
-
-    $this->cache->expects('get')
-        ->with('mongo_resume_token')
-        ->andReturn($resumeToken);
-
-    $collection->expects('watch')
-        ->andReturn($changeStream);
+    $this->mongo->expects('selectDatabase')->andReturn($this->mongoDatabase);
+    $this->mongoDatabase->expects('selectCollection')->andReturn($collection);
+    $this->cache->expects('get')->andReturn($resumeToken);
+    $collection->expects('watch')->andReturn($changeStream);
+    $collection->expects('getDatabaseName')->andReturn('default');
+    $collection->expects('getCollectionName')->andReturn('records');
 
     $changeStream->expects('rewind');
-    $changeStream->expects('next')->andReturnUsing(function () use ($changeStream) {
-        static $count = 0;
-        if ($count < 2) {
-            $count++;
-        } else {
-            $changeStream->valid = false;
-        }
-    });
+    $changeStream->expects('next')->andThrow(new Exception('Test end of stream'));
+    $changeStream->expects('current')->andReturn($insertEvent);
+    $changeStream->expects('getResumeToken')->andReturn($resumeToken);
 
-    $changeStream->expects('current')
-        ->andReturn($event, null);
+    $this->cache->expects('set')->with('mongo_resume_token', $resumeToken)->andReturn(true);
 
-    $changeStream->expects('getResumeToken')
-        ->andReturn($resumeToken);
-
-    $this->cache->expects('set')
-        ->with('mongo_resume_token', $resumeToken)
-        ->andReturn(true);
-
+    ob_start();
     $this->listener->run();
+    $output = ob_get_clean();
+
+    assertStringContainsString('Listening for changes in default.records', $output);
+    assertStringContainsString('Resume token: resume_token_data', $output);
+    assertStringContainsString('Inserted new document in default.records', $output);
+    assertStringContainsString('operationType":"insert","fullDocument":{"_id":"123","name":"Test"}', $output);
+
 });
