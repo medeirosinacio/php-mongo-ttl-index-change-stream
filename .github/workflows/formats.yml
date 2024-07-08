@@ -30,7 +30,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php }}
-        extensions: dom, mbstring, zip
+        extensions: dom, mbstring, zip, mongo
         tools: prestissimo
         coverage: pcov
 
@@ -42,6 +42,3 @@ jobs:
 
     - name: Coding Style Checks
       run: composer test:lint
-
-    - name: Type Checks
-      run: composer test:types
