@@ -17,7 +17,7 @@
   ],
   "require": {
     "php": "^8.2.0",
-    "ext-mongo": "*",
+    "ext-mongodb": "*",
     "mongodb/mongodb": "^1.15",
     "psr/simple-cache": "^3.0"
   },
